@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Party Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=UnifrakturCook:wght@700&display=swap">
+<style>
+:root{
+  --desk:#3a2a20; --panel:#2a1c14; --on-panel:#ecdcae; --on-panel-soft:#b9a173;
+  --vellum:#efe3c2; --vellum-2:#e4d3a6; --ink:#2a1c12; --ink-soft:#5b4630;
+  --blood:#7b1e1a; --gold:#a8791a; --rule:#b79f6a; --good:#2b6a58; --warn:#9a5a12; --field:#f6edd2;
+  --f-display:'UnifrakturCook','Old English Text MT',Georgia,serif;
+  --f-body:'EB Garamond',Garamond,Georgia,serif;
+  --f-cap:'Cinzel','Trajan Pro',Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --desk:#120d0a; --panel:#1b120d; --on-panel:#e6d6aa; --on-panel-soft:#a58f66;
+  --vellum:#28211a; --vellum-2:#201a14; --ink:#eadbb8; --ink-soft:#b8a37c;
+  --blood:#e3806f; --gold:#d8ad4e; --rule:#5c4b31; --good:#74c6ab; --warn:#e0a24a; --field:#1c1712; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --desk:#120d0a; --panel:#1b120d; --on-panel:#e6d6aa; --on-panel-soft:#a58f66;
+  --vellum:#28211a; --vellum-2:#201a14; --ink:#eadbb8; --ink-soft:#b8a37c;
+  --blood:#e3806f; --gold:#d8ad4e; --rule:#5c4b31; --good:#74c6ab; --warn:#e0a24a; --field:#1c1712; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--desk);color:var(--ink);font:18px/1.5 var(--f-body);min-height:100vh;padding-bottom:60px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.top{position:sticky;top:0;z-index:10;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--panel);color:var(--on-panel);padding:10px max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));border-bottom:1px solid var(--gold)}
+.brand{font:700 1.7rem/1 var(--f-display);color:var(--gold);margin:0}
+.top .r{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.95rem}
+.badge{font:600 .6rem var(--f-cap);letter-spacing:.18em;text-transform:uppercase;border:1px solid currentColor;padding:2px 9px;border-radius:99px}
+.badge.dm{color:#f0a090}.badge.demo{color:var(--on-panel-soft)}
+.tb{background:none;border:1px solid var(--on-panel-soft);color:var(--on-panel);padding:5px 12px;font:500 .64rem var(--f-cap);letter-spacing:.14em;text-transform:uppercase;border-radius:2px}
+.tb:hover{border-color:var(--gold);color:var(--gold)}
+.status{font-size:.85rem;font-style:italic;color:var(--on-panel-soft)}
+
+.wrap{max-width:1100px;margin:18px auto 0;padding-inline:16px}
+.card{background:var(--vellum);border:1px solid var(--rule);box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 0 0 4px var(--vellum),inset 0 0 0 5px var(--rule);padding:20px 22px;border-radius:2px;margin-bottom:16px;min-width:0}
+.card h2,.lbl{font:600 .68rem var(--f-cap);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+h1.page{font:700 clamp(2rem,6vw,3rem)/1.1 var(--f-display);color:var(--gold);margin:6px 0 4px}
+.sub{color:var(--on-panel-soft);font-style:italic;margin:0 0 16px}
+.banner{background:var(--vellum-2);border:1px solid var(--warn);color:var(--ink);padding:10px 14px;margin-bottom:16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+
+.btn{background:transparent;border:1px solid var(--rule);color:var(--ink-soft);padding:6px 14px;font:500 .66rem var(--f-cap);letter-spacing:.14em;text-transform:uppercase;border-radius:2px}
+.btn:hover{border-color:var(--blood);color:var(--blood)}
+.btn.pri{background:var(--blood);border-color:var(--blood);color:var(--vellum)}
+.btn.pri:hover{filter:brightness(1.12);color:var(--vellum)}
+.btn.bad{border-color:var(--blood);color:var(--blood)}
+.btn.on{color:var(--on-panel);border-color:var(--on-panel-soft)}
+.btn.sm{padding:3px 9px;font-size:.6rem}
+
+input,select,textarea{background:var(--field);border:1px solid var(--rule);border-radius:2px;padding:6px 9px;width:100%;min-width:0;color:var(--ink)}
+input[type=checkbox]{width:auto;accent-color:var(--blood);transform:scale(1.2)}
+input[type=number]{-moz-appearance:textfield}
+textarea{resize:vertical;min-height:90px}
+input.bare{background:transparent;border:0;border-bottom:1px solid var(--rule);border-radius:0}
+.fl{display:grid;gap:3px;min-width:0}
+.fl>span{font:600 .58rem var(--f-cap);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.g{display:grid;gap:12px}
+.g.c2{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.g.c4{grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr))}
+
+/* auth */
+.auth{max-width:440px;margin:6vh auto 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:8px 14px;font:600 .72rem var(--f-cap);letter-spacing:.16em;text-transform:uppercase;color:var(--on-panel-soft)}
+.tab[aria-selected=true]{color:var(--gold);border-color:var(--gold)}
+.err{color:var(--blood);font-style:italic;min-height:1.4em;margin:6px 0 0}
+
+/* dashboard */
+.party{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:16px}
+.pc{margin:0;display:grid;gap:10px}
+.pc h3{margin:0;font:700 1.6rem/1.1 var(--f-display);color:var(--blood);overflow-wrap:anywhere}
+.pc .who{font-style:italic;color:var(--ink-soft);font-size:.95rem}
+.flash{animation:fl 1.4s ease}
+@keyframes fl{from{box-shadow:0 0 0 3px var(--gold),0 8px 24px rgba(0,0,0,.35)}to{box-shadow:0 8px 24px rgba(0,0,0,.35)}}
+@media (prefers-reduced-motion:reduce){.flash{animation:none}}
+.bar{height:12px;border:1px solid var(--rule);background:var(--field);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good);width:0;transition:width .25s}
+.bar i.mid{background:var(--warn)}.bar i.low{background:var(--blood)}
+.hpline{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hpline b{font:600 1.5rem var(--f-body)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.stats div{border:1px solid var(--rule);padding:4px 2px}
+.stats b{display:block;font-size:1.2rem;line-height:1.2}
+.stats span{font:600 .52rem var(--f-cap);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 .58rem var(--f-cap);letter-spacing:.12em;text-transform:uppercase;padding:2px 9px;border:1px solid var(--blood);color:var(--blood);border-radius:99px;background:transparent}
+button.chip{cursor:pointer;border-color:var(--rule);color:var(--ink-soft)}
+button.chip[aria-pressed=true]{background:var(--blood);border-color:var(--blood);color:var(--vellum)}
+.qh{display:flex;gap:6px;flex-wrap:wrap}
+.warnt{color:var(--blood);font-weight:600}
+.empty{text-align:center;padding:36px 12px;font-style:italic;color:var(--ink-soft)}
+
+/* sheet */
+.name{font:700 clamp(2rem,6vw,3rem)/1.1 var(--f-display);color:var(--blood);padding:2px 0;border-bottom:1px solid var(--rule)}
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:16px}
+.tile{background:var(--vellum);border:1px solid var(--rule);text-align:center;padding:8px 6px;min-width:0}
+.tile .v{font:600 1.8rem/1.2 var(--f-body);display:block}
+.tile input{text-align:center;font-size:1.5rem;font-weight:600;padding:2px}
+.tile .l{font:600 .56rem var(--f-cap);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.tile .hint{display:block;font-size:.7rem;color:var(--ink-soft);font-style:italic}
+.roll{background:none;border:0;padding:0;color:var(--blood);font-weight:600;text-decoration:underline dotted;text-underline-offset:3px}
+.abils{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.ab{background:var(--vellum);border:1px solid var(--rule);text-align:center;padding:8px;min-width:0}
+.ab .n{font:600 .6rem var(--f-cap);letter-spacing:.2em;color:var(--ink-soft)}
+.ab .m{font:600 1.8rem/1.2 var(--f-body)}
+.ab input{text-align:center;max-width:70px;margin:2px auto 0;display:block}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.sk{display:grid;grid-template-columns:28px 44px 1fr;gap:6px;align-items:center;padding:2px 0;border-bottom:1px dotted var(--rule)}
+.sk .pr{background:none;border:0;font-size:1rem;color:var(--blood);padding:0}
+.sk .b{font-weight:600;text-align:right}
+.sk small{color:var(--ink-soft);font-size:.78rem}
+.pips{display:inline-flex;gap:6px;vertical-align:middle}
+.pip{width:20px;height:20px;border:1.5px solid var(--blood);border-radius:50%;background:transparent;padding:0}
+.pip[aria-pressed=true]{background:var(--blood)}
+.pip.sq{border-radius:3px;border-color:var(--gold)}.pip.sq[aria-pressed=true]{background:var(--gold)}
+.row{display:grid;gap:8px;align-items:center;margin-bottom:6px}
+.row.atk{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,2fr) 32px}
+.row.itm{grid-template-columns:24px minmax(0,3fr) 64px 70px minmax(0,2fr) 32px}
+.row.spl{grid-template-columns:24px minmax(0,3fr) 64px minmax(0,2fr) 32px}
+.row.head{font:600 .55rem var(--f-cap);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:2px}
+.x{background:none;border:0;color:var(--blood);font-size:1.3rem;line-height:1}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px}
+.slot{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.slot .lv{font:600 .62rem var(--f-cap);letter-spacing:.14em;width:34px;color:var(--ink-soft)}
+.slot input{width:58px}
+.logi{border-bottom:1px dotted var(--rule);padding:4px 0}
+.logi small{color:var(--ink-soft);display:block}
+.dmp{border-color:var(--blood)}
+.coins{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel);color:var(--on-panel);border:1px solid var(--gold);padding:10px 18px;border-radius:2px;z-index:50;max-width:calc(100vw - 32px);text-align:center}
+.toast b{color:var(--gold);font-size:1.3em}
+.toast .nat{color:#f0a090}
+@media (max-width:640px){
+  .row.itm{grid-template-columns:24px minmax(0,1fr) 56px 60px 32px}.row.itm .nt{grid-column:2/-1}
+  .row.itm.head .nt{display:none}
+  .row.atk{grid-template-columns:minmax(0,1fr) 80px 32px}.row.atk .dm{grid-column:1/-1}
+  .row.spl{grid-template-columns:24px minmax(0,1fr) 56px 32px}.row.spl .nt{grid-column:2/-1}
+  .row.head.spl .nt,.row.head.atk .dm{display:none}
+  .card{padding:16px 14px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ================= basics ================= */
+var CFG=window.PARTY_CONFIG||{};
+var DEMO=!CFG.SUPABASE_URL||/YOUR_/i.test(CFG.SUPABASE_URL);
+function $(s,r){return (r||document).querySelector(s)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function uid(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}
+function getP(o,p){return p.split('.').reduce(function(a,k){return a==null?a:a[k]},o)}
+function setP(o,p,v){var ks=p.split('.'),a=o;for(var i=0;i<ks.length-1;i++){if(a[ks[i]]==null)a[ks[i]]={};a=a[ks[i]]}a[ks[ks.length-1]]=v}
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function ago(t){var s=Math.max(0,(Date.now()-new Date(t).getTime())/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' h ago';return Math.floor(s/86400)+' d ago'}
+var toastT;function toast(h){var e=$('#toast');e.innerHTML=h;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){e.hidden=true},3600)}
+
+/* ================= rules data ================= */
+var ABIL=['str','dex','con','int','wis','cha'];
+var ANAME={str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
+var SKILLS=[['acrobatics','Acrobatics','dex'],['animal','Animal Handling','wis'],['arcana','Arcana','int'],['athletics','Athletics','str'],['deception','Deception','cha'],['history','History','int'],['insight','Insight','wis'],['intimidation','Intimidation','cha'],['investigation','Investigation','int'],['medicine','Medicine','wis'],['nature','Nature','int'],['perception','Perception','wis'],['performance','Performance','cha'],['persuasion','Persuasion','cha'],['religion','Religion','int'],['sleight','Sleight of Hand','dex'],['stealth','Stealth','dex'],['survival','Survival','wis']];
+var CONDS=['Blinded','Charmed','Deafened','Frightened','Grappled','Incapacitated','Invisible','Paralyzed','Petrified','Poisoned','Prone','Restrained','Stunned','Unconscious'];
+
+function blank(name){
+  var slots={};for(var i=1;i<=9;i++)slots[i]={t:0,u:0};
+  return {v:1,name:name||'New Hero',race:'',cls:'',sub:'',level:1,bg:'',align:'',xp:0,
+    abil:{str:10,dex:10,con:10,int:10,wis:10,cha:10},saves:{},skills:{},
+    ac:10,speed:30,hp:{cur:10,max:10,temp:0},hitDice:'',inspiration:false,death:{s:0,f:0},
+    conditions:[],exhaustion:0,initBonus:0,attacks:[],castAbility:'',slots:slots,spells:[],
+    features:'',notes:'',story:'',items:[],coin:{cp:0,sp:0,ep:0,gp:0,pp:0},log:[]};
+}
+function fill(def,obj){
+  if(Array.isArray(def))return Array.isArray(obj)?obj:def;
+  if(def&&typeof def==='object'){var o={},src=(obj&&typeof obj==='object')?obj:{};
+    Object.keys(def).forEach(function(k){o[k]=fill(def[k],src[k])});
+    Object.keys(src).forEach(function(k){if(!(k in def))o[k]=src[k]});return o}
+  return (obj===undefined||obj===null)?def:obj;
+}
+function norm(d){return fill(blank(),d||{})}
+function mod(n){return Math.floor(((Number(n)||10)-10)/2)}
+function sgn(n){return n>=0?'+'+n:String(n)}
+function prof(d){return 2+Math.floor((Math.max(1,Number(d.level)||1)-1)/4)}
+function skillB(d,k){var s=SKILLS.filter(function(x){return x[0]===k})[0];return mod(d.abil[s[2]])+prof(d)*(d.skills[k]||0)}
+function saveB(d,a){return mod(d.abil[a])+(d.saves[a]?prof(d):0)}
+function coinsN(d){var c=d.coin;return (Number(c.cp)||0)+(Number(c.sp)||0)+(Number(c.ep)||0)+(Number(c.gp)||0)+(Number(c.pp)||0)}
+function weight(d){var w=d.items.reduce(function(s,i){return s+(Number(i.qty)||0)*(Number(i.weight)||0)},0)+coinsN(d)/50;return Math.round(w*10)/10}
+function cap(d){return (Number(d.abil.str)||10)*15}
+function bonusFor(d,key){
+  var p=key.split('.');
+  if(p[0]==='skill')return skillB(d,p[1]);
+  if(p[0]==='save')return saveB(d,p[1]);
+  if(p[0]==='abil')return mod(d.abil[p[1]]);
+  if(p[0]==='init')return mod(d.abil.dex)+(Number(d.initBonus)||0);
+  return 0;
+}
+function derived(d){
+  var o={prof:sgn(prof(d)),init:sgn(bonusFor(d,'init')),pp:String(10+skillB(d,'perception')),wt:String(weight(d)),cap:String(cap(d)),
+    acHint:'Unarmored: '+(10+mod(d.abil.dex))};
+  ABIL.forEach(function(a){o['mod.'+a]=sgn(mod(d.abil[a]));o['abil.'+a]=sgn(mod(d.abil[a]));o['save.'+a]=sgn(saveB(d,a))});
+  SKILLS.forEach(function(s){o['skill.'+s[0]]=sgn(skillB(d,s[0]))});
+  if(d.castAbility){o.dc=String(8+prof(d)+mod(d.abil[d.castAbility]));o.atk=sgn(prof(d)+mod(d.abil[d.castAbility]))}else{o.dc='-';o.atk='-'}
+  var over=weight(d)>cap(d);o.wtstat=over?'Over capacity':'Within capacity';
+  return o;
+}
+function hpClass(c,m){var r=m>0?c/m:0;return r<=.25?'low':(r<=.5?'mid':'')}
+
+/* ================= back ends ================= */
+var B;
+if(DEMO){
+  B=(function(){
+    var K='pt-demo',me=null,subs=[];
+    function load(){try{return JSON.parse(localStorage.getItem(K))||{users:[],chars:[],notes:{}}}catch(e){return {users:[],chars:[],notes:{}}}}
+    function save(s){localStorage.setItem(K,JSON.stringify(s))}
+    function vis(c){return me&&(me.role==='dm'||c.owner===me.id)}
+    function emit(p){subs.forEach(function(f){f(p)})}
+    window.addEventListener('storage',function(e){
+      if(e.key!==K)return;var o,n;try{o=JSON.parse(e.oldValue)||{chars:[]};n=JSON.parse(e.newValue)||{chars:[]}}catch(x){return}
+      (n.chars||[]).forEach(function(c){var old=(o.chars||[]).filter(function(x){return x.id===c.id})[0];
+        if(vis(c)&&(!old||JSON.stringify(old)!==JSON.stringify(c)))emit({eventType:old?'UPDATE':'INSERT',new:c})});
+      (o.chars||[]).forEach(function(c){if(!(n.chars||[]).some(function(x){return x.id===c.id}))emit({eventType:'DELETE',old:{id:c.id}})});
+    });
+    function pub(u){return {id:u.id,email:u.email,name:u.name,role:u.role}}
+    return {
+      init:async function(){var id=sessionStorage.getItem('pt-me');if(!id)return null;var u=load().users.filter(function(x){return x.id===id})[0];if(!u)return null;me=pub(u);return me},
+      signUp:async function(email,pw,name,dm){var s=load();email=email.trim().toLowerCase();
+        if(s.users.some(function(u){return u.email===email}))throw new Error('That email already has an account.');
+        if(pw.length<6)throw new Error('Password needs at least 6 characters.');
+        var u={id:uid(),email:email,pw:pw,name:name||email.split('@')[0],role:dm?'dm':'player'};s.users.push(u);save(s);sessionStorage.setItem('pt-me',u.id);me=pub(u);return me},
+      signIn:async function(email,pw){var u=load().users.filter(function(x){return x.email===email.trim().toLowerCase()&&x.pw===pw})[0];
+        if(!u)throw new Error('Wrong email or password.');sessionStorage.setItem('pt-me',u.id);me=pub(u);return me},
+      signOut:async function(){sessionStorage.removeItem('pt-me');me=null},
+      chars:async function(){return load().chars.filter(vis)},
+      names:async function(){var m={};load().users.forEach(function(u){m[u.id]=u.name});return m},
+      create:async function(data){var s=load(),r={id:uid(),owner:me.id,data:data,updated_at:new Date().toISOString()};s.chars.push(r);save(s);return r},
+      save:async function(id,data){var s=load(),r=s.chars.filter(function(c){return c.id===id})[0];if(!r)throw new Error('Character not found.');r.data=data;r.updated_at=new Date().toISOString();save(s);return r},
+      remove:async function(id){var s=load();s.chars=s.chars.filter(function(c){return c.id!==id});delete s.notes[id];save(s)},
+      getNote:async function(id){return load().notes[id]||''},
+      saveNote:async function(id,t){var s=load();s.notes[id]=t;save(s)},
+      subscribe:function(cb){subs.push(cb);return function(){subs=subs.filter(function(f){return f!==cb})}}
+    };
+  })();
+}else if(window.supabase){
+  B=(function(){
+    var sb=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY),me=null;
+    async function prof(uid_){var r=await sb.from('profiles').select('id,display_name,role').eq('id',uid_).single();if(r.error)throw r.error;return r.data}
+    async function mk(user){var p=await prof(user.id);me={id:user.id,email:user.email,name:p.display_name,role:p.role};return me}
+    function fail(r){if(r.error)throw new Error(r.error.message)}
+    return {
+      init:async function(){var s=await sb.auth.getSession();if(!s.data.session)return null;try{return await mk(s.data.session.user)}catch(e){return null}},
+      signUp:async function(email,pw,name){var r=await sb.auth.signUp({email:email.trim(),password:pw,options:{data:{display_name:name}}});fail(r);
+        if(!r.data.session)throw new Error('Check your email to confirm the account, or turn off "Confirm email" in Supabase (see the README).');return await mk(r.data.user)},
+      signIn:async function(email,pw){var r=await sb.auth.signInWithPassword({email:email.trim(),password:pw});fail(r);return await mk(r.data.user)},
+      signOut:async function(){await sb.auth.signOut();me=null},
+      chars:async function(){var r=await sb.from('characters').select('id,owner,data,updated_at');fail(r);return r.data},
+      names:async function(){var r=await sb.from('profiles').select('id,display_name');fail(r);var m={};r.data.forEach(function(p){m[p.id]=p.display_name});return m},
+      create:async function(data){var r=await sb.from('characters').insert({owner:me.id,data:data}).select().single();fail(r);return r.data},
+      save:async function(id,data){var r=await sb.from('characters').update({data:data,updated_at:new Date().toISOString()}).eq('id',id).select().single();fail(r);return r.data},
+      remove:async function(id){var r=await sb.from('characters').delete().eq('id',id);fail(r)},
+      getNote:async function(id){var r=await sb.from('dm_notes').select('note').eq('character_id',id).maybeSingle();fail(r);return r.data?r.data.note:''},
+      saveNote:async function(id,t){var r=await sb.from('dm_notes').upsert({character_id:id,note:t,updated_at:new Date().toISOString()});fail(r)},
+      subscribe:function(cb){var ch=sb.channel('chars-'+Math.random().toString(36).slice(2)).on('postgres_changes',{event:'*',schema:'public',table:'characters'},cb).subscribe();return function(){sb.removeChannel(ch)}}
+    };
+  })();
+}
+
+/* ================= app state ================= */
+var A={user:null,chars:new Map(),names:{},view:'auth',curId:null,data:null,tab:'sheet',dirty:false,timer:null,sent:[],stale:false,unsub:null,note:'',confirmDel:false,authTab:'in',flashId:null};
+
+function app(h){$('#app').innerHTML=h}
+function topbar(){
+  var back=A.view==='sheet'?'<button class="tb" data-act="home">'+(A.user.role==='dm'?'Party':'My characters')+'</button>':'';
+  return '<header class="top"><p class="brand">The Party Ledger</p><div class="r">'+(DEMO?'<span class="badge demo">Demo mode</span>':'')+
+    (A.user?'<span>'+esc(A.user.name)+'</span><span class="badge '+(A.user.role==='dm'?'dm':'')+'">'+(A.user.role==='dm'?'DM':'Player')+'</span>':'')+
+    '<span class="status" id="status"></span>'+back+(A.user?'<button class="tb" data-act="out">Sign out</button>':'')+'</div></header>';
+}
+function setStatus(t){var e=$('#status');if(e)e.textContent=t}
+
+/* ================= auth view ================= */
+function renderAuth(err){
+  A.view='auth';var up=A.authTab==='up';
+  app(topbar()+'<main class="wrap"><section class="card auth"><div class="tabs" role="tablist">'+
+    '<button class="tab" role="tab" data-act="atab" data-t="in" aria-selected="'+!up+'" style="color:'+(up?'var(--ink-soft)':'var(--blood)')+'">Sign in</button>'+
+    '<button class="tab" role="tab" data-act="atab" data-t="up" aria-selected="'+up+'" style="color:'+(up?'var(--blood)':'var(--ink-soft)')+'">Create account</button></div>'+
+    '<form id="af" class="g">'+(up?'<label class="fl"><span>Your name</span><input id="a-name" autocomplete="nickname"></label>':'')+
+    '<label class="fl"><span>Email</span><input id="a-email" type="email" autocomplete="email" required></label>'+
+    '<label class="fl"><span>Password</span><input id="a-pw" type="password" autocomplete="'+(up?'new-password':'current-password')+'" required minlength="6"></label>'+
+    (up&&DEMO?'<label><input id="a-dm" type="checkbox"> I am the DM (demo mode only)</label>':'')+
+    '<button class="btn pri" type="submit">'+(up?'Create account':'Sign in')+'</button><p class="err" id="a-err" role="alert">'+esc(err||'')+'</p></form>'+
+    (DEMO?'<p class="lbl" style="margin-top:12px">Demo mode: everything stays in this browser. Fill in config.js to go live.</p>':'')+'</section></main>');
+}
+
+/* ================= home views ================= */
+async function enter(){
+  A.chars=new Map();(await B.chars()).forEach(function(r){A.chars.set(r.id,r)});
+  A.names=await B.names();
+  if(A.unsub)A.unsub();A.unsub=B.subscribe(onRT);
+  goHome(true);
+}
+function goHome(auto){
+  flush();A.curId=null;A.data=null;A.confirmDel=false;A.stale=false;
+  if(auto&&A.user.role!=='dm'&&A.chars.size===1){openChar(Array.from(A.chars.keys())[0]);return}
+  renderHome();
+}
+function hpBar(d){var pct=d.hp.max>0?Math.max(0,Math.min(100,d.hp.cur/d.hp.max*100)):0;return '<div class="bar" aria-hidden="true"><i class="'+hpClass(d.hp.cur,d.hp.max)+'" style="width:'+pct+'%"></i></div>'}
+function chipsOf(d){var c=d.conditions.slice();if(d.exhaustion>0)c.push('Exhaustion '+d.exhaustion);return c.length?'<div class="chips">'+c.map(function(x){return '<span class="chip">'+esc(x)+'</span>'}).join('')+'</div>':''}
+function card(r){
+  var d=norm(r.data),dm=A.user.role==='dm',w=weight(d),c=cap(d);
+  return '<article class="card pc'+(A.flashId===r.id?' flash':'')+'" data-id="'+r.id+'">'+
+    '<div><h3>'+esc(d.name)+'</h3><div class="who">'+esc([d.race,d.cls,'Level '+d.level].filter(Boolean).join(' · '))+(dm?' · '+esc(A.names[r.owner]||'Player'):'')+'</div></div>'+
+    '<div class="hpline"><span class="lbl" style="margin:0">Hit points</span><span><b>'+d.hp.cur+'</b> / '+d.hp.max+(d.hp.temp?' <small>(+'+d.hp.temp+' temp)</small>':'')+'</span></div>'+hpBar(d)+
+    (dm?'<div class="qh">'+[-10,-5,-1,1,5,10].map(function(n){return '<button class="btn sm" data-act="hpq" data-id="'+r.id+'" data-d="'+n+'">'+(n>0?'+':'−')+Math.abs(n)+'</button>'}).join('')+'</div>':'')+
+    '<div class="stats"><div><b>'+d.ac+'</b><span>AC</span></div><div><b>'+(10+skillB(d,'perception'))+'</b><span>Passive</span></div><div><b>'+d.speed+'</b><span>Speed</span></div><div><b>'+(Number(d.coin.gp)||0)+'</b><span>Gold</span></div></div>'+
+    chipsOf(d)+
+    '<div class="lbl" style="margin:0">Carrying <span class="'+(w>c?'warnt':'')+'">'+w+' / '+c+' lb</span> · updated '+ago(r.updated_at)+'</div>'+
+    '<button class="btn pri" data-act="open" data-id="'+r.id+'">Open sheet</button></article>';
+}
+function renderHome(){
+  A.view='home';var dm=A.user.role==='dm';
+  var rows=Array.from(A.chars.values());
+  rows.sort(function(a,b){return (A.names[a.owner]||'').localeCompare(A.names[b.owner]||'')||String(a.id).localeCompare(String(b.id))});
+  app(topbar()+'<main class="wrap"><h1 class="page">'+(dm?'The party':'Your characters')+'</h1><p class="sub">'+(dm?'Live view of every sheet. Changes appear as players make them.':'Pick a character, or start a new one.')+'</p>'+
+    '<div class="party">'+rows.map(card).join('')+'</div>'+
+    (rows.length?'':'<div class="card empty">'+(dm?'No characters yet. Share the site link, and have your players create accounts and characters.':'You have no characters yet.')+'</div>')+
+    (dm?'':'<p><button class="btn pri" data-act="new">New character</button></p>')+
+    (dm?'<p><button class="btn on" data-act="new">Add a character for an NPC or companion</button></p>':'')+'</main>');
+  A.flashId=null;
+}
+async function newChar(){
+  try{var r=await B.create(blank());A.chars.set(r.id,r);A.names[r.owner]=A.user.name;openChar(r.id)}catch(e){toast(esc(e.message))}
+}
+
+/* ================= realtime ================= */
+function sheetBusy(){var e=document.activeElement;return e&&$('#sheet')&&$('#sheet').contains(e)&&/INPUT|TEXTAREA|SELECT/.test(e.tagName)}
+async function onRT(p){
+  var t=p.eventType;
+  if(t==='DELETE'){var id=p.old.id;A.chars.delete(id);if(A.curId===id){toast('This character was deleted.');A.curId=null;A.data=null;renderHome()}else if(A.view==='home')renderHome();return}
+  var row=p.new;if(!row)return;A.chars.set(row.id,row);
+  if(!A.names[row.owner]){try{A.names=await B.names()}catch(e){}}
+  if(A.view==='sheet'&&A.curId===row.id){
+    var s=JSON.stringify(row.data);
+    if(A.sent.indexOf(s)>-1||s===JSON.stringify(A.data))return;
+    if(A.dirty){A.stale=true;showStale()}
+    else{
+      var ae=document.activeElement,fp=sheetBusy()?ae.getAttribute('data-p'):null,ss=null,se=null;
+      if(fp){try{ss=ae.selectionStart;se=ae.selectionEnd}catch(x){}}
+      A.data=norm(row.data);renderSheet();
+      if(fp){var ne=document.querySelector('[data-p="'+fp+'"]');if(ne){ne.focus();try{if(ss!=null)ne.setSelectionRange(ss,se)}catch(x){}}}
+    }
+  }else if(A.view==='home'){A.flashId=row.id;renderHome()}
+}
+function showStale(){var b=$('#stale');if(b)b.hidden=false}
+
+/* ================= saving ================= */
+function touch(){A.dirty=true;setStatus('Unsaved…');clearTimeout(A.timer);A.timer=setTimeout(flush,500)}
+async function flush(){
+  if(!A.dirty||!A.curId||!A.data)return;
+  A.dirty=false;clearTimeout(A.timer);
+  var s=JSON.stringify(A.data);A.sent.push(s);if(A.sent.length>8)A.sent.shift();
+  var row=A.chars.get(A.curId);if(row){row.data=JSON.parse(s);row.updated_at=new Date().toISOString()}
+  try{await B.save(A.curId,A.data);setStatus('Saved')}catch(e){A.dirty=true;setStatus('Could not save');toast(esc(e.message))}
+}
+document.addEventListener('visibilitychange',function(){if(document.hidden)flush()});
+window.addEventListener('pagehide',flush);
+
+/* ================= sheet ================= */
+async function openChar(id){
+  var r=A.chars.get(id);if(!r)return;
+  A.curId=id;A.data=norm(r.data);A.tab='sheet';A.stale=false;A.confirmDel=false;A.note='';
+  if(A.user.role==='dm'){try{A.note=await B.getNote(id)}catch(e){}}
+  renderSheet();window.scrollTo(0,0);
+}
+function inp(path,o){o=o||{};var v=getP(A.data,path),t=o.t||'text';
+  return '<input data-p="'+path+'" data-t="'+t+'" '+(t==='num'?'type="number" inputmode="numeric"':'type="text"')+' value="'+esc(v==null?'':v)+'"'+
+    (o.cls?' class="'+o.cls+'"':'')+(o.ph?' placeholder="'+esc(o.ph)+'"':'')+(o.r?' data-r="1"':'')+(o.label?' aria-label="'+esc(o.label)+'"':'')+(o.step?' step="'+o.step+'"':'')+'>'}
+function fld(label,path,o){return '<label class="fl"><span>'+label+'</span>'+inp(path,o)+'</label>'}
+function chk(path,label){return '<input type="checkbox" data-p="'+path+'" data-t="bool"'+(getP(A.data,path)?' checked':'')+' aria-label="'+esc(label)+'">'}
+function area(path,rows,label){return '<label class="fl"><span>'+label+'</span><textarea data-p="'+path+'" data-t="text" rows="'+(rows||5)+'">'+esc(getP(A.data,path))+'</textarea></label>'}
+function pips(path,n,cls){var v=Number(getP(A.data,path))||0,h='<span class="pips">';for(var i=0;i<n;i++)h+='<button type="button" class="pip'+(cls?' '+cls:'')+'" data-act="pip" data-p="'+path+'" data-i="'+i+'" aria-pressed="'+(v>i)+'" aria-label="'+path+' '+(i+1)+'"></button>';return h+'</span>'}
+function dv(k,cls){return '<span data-d="'+k+'"'+(cls?' class="'+cls+'"':'')+'></span>'}
+function rollBtn(label,key){return '<button type="button" class="roll" data-act="roll" data-l="'+esc(label)+'" data-k="'+key+'" data-d="'+key+'"></button>'}
+
+function tabSheet(d){
+  var h='<div class="band">'+
+    '<div class="tile"><span class="l">Proficiency</span><span class="v" data-d="prof"></span></div>'+
+    '<div class="tile"><span class="l">Initiative</span><span class="v">'+rollBtn('Initiative','init')+'</span></div>'+
+    '<div class="tile"><span class="l">Armor class</span>'+inp('ac',{t:'num',label:'Armor class'})+'<span class="hint" data-d="acHint"></span></div>'+
+    '<div class="tile"><span class="l">Speed</span>'+inp('speed',{t:'num',label:'Speed'})+'</div>'+
+    '<div class="tile"><span class="l">Passive perception</span><span class="v" data-d="pp"></span></div>'+
+    '<div class="tile"><span class="l">Inspiration</span><span class="v">'+chk('inspiration','Inspiration')+'</span></div></div>';
+  h+='<section class="card"><h2>Hit points</h2><div class="bar" aria-hidden="true"><i data-hpbar></i></div>'+
+    '<div class="g c4" style="margin-top:10px">'+fld('Current','hp.cur',{t:'num'})+fld('Maximum','hp.max',{t:'num'})+fld('Temporary','hp.temp',{t:'num'})+fld('Hit dice','hitDice',{ph:'3d8'})+'</div>'+
+    '<div class="qh" style="margin-top:10px">'+[-10,-5,-1,1,5,10].map(function(n){return '<button class="btn sm" data-act="hps" data-d="'+n+'">'+(n>0?'Heal +':'Damage ')+Math.abs(n)+'</button>'}).join('')+'</div>'+
+    '<div class="g c2" style="margin-top:14px"><div><div class="lbl">Death saves</div>Successes '+pips('death.s',3,'sq')+'<br>Failures '+pips('death.f',3)+'</div>'+
+    '<div>'+fld('Exhaustion (0-6)','exhaustion',{t:'num',r:1})+'</div></div>'+
+    '<div class="lbl" style="margin-top:14px">Conditions</div><div class="chips">'+CONDS.map(function(c){return '<button type="button" class="chip" data-act="cond" data-c="'+c+'" aria-pressed="'+(d.conditions.indexOf(c)>-1)+'">'+c+'</button>'}).join('')+'</div></section>';
+  h+='<div class="abils">'+ABIL.map(function(a){return '<div class="ab"><div class="n">'+ANAME[a].toUpperCase()+'</div><div class="m">'+rollBtn(ANAME[a]+' check','abil.'+a)+'</div>'+inp('abil.'+a,{t:'num',label:ANAME[a],cls:''})+'</div>'}).join('')+'</div>';
+  h+='<div class="cols"><section class="card"><h2>Saving throws</h2>'+ABIL.map(function(a){return '<div class="sk"><span>'+chk('saves.'+a,ANAME[a]+' save proficiency')+'</span><span class="b">'+rollBtn(ANAME[a]+' save','save.'+a)+'</span><span>'+ANAME[a]+'</span></div>'}).join('')+
+    '<h2 style="margin-top:18px">Skills <small style="text-transform:none;letter-spacing:0">(click the circle: proficient, then expertise)</small></h2>'+
+    SKILLS.map(function(s){var v=d.skills[s[0]]||0;return '<div class="sk"><button type="button" class="pr" data-act="skill" data-k="'+s[0]+'" aria-label="'+s[1]+' proficiency">'+['○','●','◆'][v]+'</button><span class="b">'+rollBtn(s[1],'skill.'+s[0])+'</span><span>'+s[1]+' <small>('+s[2].toUpperCase()+')</small></span></div>'}).join('')+'</section>'+
+    '<div><section class="card"><h2>Attacks</h2>'+attacksHTML(d)+'<button class="btn sm" data-act="add" data-l="attacks">Add attack</button></section>'+
+    '<section class="card">'+area('features',9,'Features and traits')+'</section></div></div>';
+  return h;
+}
+function attacksHTML(d){
+  if(!d.attacks.length)return '<p class="lbl" style="text-transform:none;letter-spacing:0;font-style:italic">No attacks yet.</p>';
+  return '<div class="row atk head"><span>Name</span><span>Bonus</span><span class="dm">Damage and type</span><span></span></div>'+
+    d.attacks.map(function(a,i){return '<div class="row atk">'+inp('attacks.'+i+'.name',{label:'Attack name'})+inp('attacks.'+i+'.bonus',{label:'Attack bonus',ph:'+5'})+'<span class="dm">'+inp('attacks.'+i+'.dmg',{label:'Damage',ph:'1d8+3 slashing'})+'</span><button class="x" data-act="rm" data-l="attacks" data-i="'+i+'" aria-label="Remove attack">×</button></div>'}).join('');
+}
+function tabSpells(d){
+  var h='<section class="card"><h2>Spellcasting</h2><div class="g c4"><label class="fl"><span>Casting ability</span><select data-p="castAbility" data-t="text" data-r="1"><option value="">None</option>'+
+    ABIL.map(function(a){return '<option value="'+a+'"'+(d.castAbility===a?' selected':'')+'>'+ANAME[a]+'</option>'}).join('')+'</select></label>'+
+    '<div class="tile"><span class="l">Spell save DC</span><span class="v" data-d="dc"></span></div><div class="tile"><span class="l">Spell attack</span><span class="v" data-d="atk"></span></div></div>'+
+    '<div class="lbl" style="margin-top:16px">Spell slots (set total, then tick used)</div><div class="slots">';
+  for(var i=1;i<=9;i++){h+='<div class="slot"><span class="lv">LV '+i+'</span><input type="number" inputmode="numeric" data-p="slots.'+i+'.t" data-t="num" data-r="1" value="'+d.slots[i].t+'" aria-label="Level '+i+' total slots">'+
+    '<span class="pips">'+Array.apply(null,Array(Math.min(9,Number(d.slots[i].t)||0))).map(function(_,j){return '<button type="button" class="pip sq" data-act="pip" data-p="slots.'+i+'.u" data-i="'+j+'" aria-pressed="'+(d.slots[i].u>j)+'" aria-label="Level '+i+' slot '+(j+1)+' used"></button>'}).join('')+'</span></div>'}
+  h+='</div></section><section class="card"><h2>Spells</h2>'+
+    (d.spells.length?'<div class="row spl head"><span></span><span>Name</span><span>Level</span><span class="nt">Notes</span><span></span></div>':'<p class="lbl" style="text-transform:none;letter-spacing:0;font-style:italic">No spells yet.</p>')+
+    d.spells.map(function(s,i){return '<div class="row spl">'+chk('spells.'+i+'.prep','Prepared')+inp('spells.'+i+'.name',{label:'Spell name'})+inp('spells.'+i+'.lv',{t:'num',label:'Level'})+'<span class="nt">'+inp('spells.'+i+'.note',{label:'Notes',ph:'range, duration, concentration'})+'</span><button class="x" data-act="rm" data-l="spells" data-i="'+i+'" aria-label="Remove spell">×</button></div>'}).join('')+
+    '<button class="btn sm" data-act="add" data-l="spells">Add spell</button></section>';
+  return h;
+}
+function tabInv(d){
+  var h='<section class="card"><h2>Coin</h2><div class="coins">'+['cp','sp','ep','gp','pp'].map(function(c){return fld(c.toUpperCase(),'coin.'+c,{t:'num'})}).join('')+'</div></section>'+
+    '<section class="card"><h2>Inventory</h2><p style="margin:0 0 10px"><b data-d="wt"></b> / <b data-d="cap"></b> lb carried · <span data-d="wtstat"></span> <span class="lbl" style="text-transform:none;letter-spacing:0;font-style:italic">(capacity is Strength × 15, coins count 50 to the pound)</span></p>'+
+    (d.items.length?'<div class="row itm head"><span></span><span>Item</span><span>Qty</span><span>Weight</span><span class="nt">Notes</span><span></span></div>':'<p class="lbl" style="text-transform:none;letter-spacing:0;font-style:italic">Nothing carried yet.</p>')+
+    d.items.map(function(it,i){return '<div class="row itm">'+chk('items.'+i+'.eq','Equipped')+inp('items.'+i+'.name',{label:'Item'})+inp('items.'+i+'.qty',{t:'num',label:'Quantity',step:'any'})+inp('items.'+i+'.weight',{t:'num',label:'Weight each',step:'any'})+'<span class="nt">'+inp('items.'+i+'.note',{label:'Notes'})+'</span><button class="x" data-act="rm" data-l="items" data-i="'+i+'" aria-label="Remove item">×</button></div>'}).join('')+
+    '<button class="btn sm" data-act="add" data-l="items">Add item</button></section>';
+  if(d.log.length)h+='<section class="card"><h2>Messages from the DM</h2>'+d.log.slice().reverse().slice(0,12).map(function(l){return '<div class="logi">'+esc(l.msg)+'<small>'+ago(l.t)+'</small></div>'}).join('')+'</section>';
+  return h;
+}
+function tabStory(d){
+  return '<section class="card">'+area('story',10,'Backstory, personality, bonds')+'</section><section class="card">'+area('notes',8,'Notes')+'</section>'+
+    '<section class="card"><h2>Danger zone</h2>'+(A.confirmDel?'<span>Delete this character for good? </span><button class="btn bad" data-act="del2">Yes, delete</button> <button class="btn" data-act="delno">Keep</button>':'<button class="btn bad" data-act="del">Delete character</button>')+'</section>';
+}
+function dmPanel(d){
+  return '<section class="card dmp"><h2>DM only</h2><div class="g c2" style="align-items:start"><label class="fl"><span>Private notes (players never see these)</span><textarea id="dmnote" rows="5">'+esc(A.note)+'</textarea></label>'+
+    '<div><div class="lbl">Give loot or gold</div><div class="g c2"><label class="fl"><span>Item</span><input id="g-name"></label><label class="fl"><span>Quantity</span><input id="g-qty" type="number" value="1"></label><label class="fl"><span>Gold</span><input id="g-gp" type="number" value="0"></label><label class="fl"><span>Message</span><input id="g-msg" placeholder="Found in the vault"></label></div>'+
+    '<p style="margin:10px 0 0"><button class="btn pri" data-act="grant">Give</button></p></div></div></section>';
+}
+function renderSheet(){
+  var d=A.data,dm=A.user.role==='dm';A.view='sheet';
+  var tabs=[['sheet','Sheet'],['spells','Spells'],['inv','Inventory'],['story','Story']];
+  var body=A.tab==='sheet'?tabSheet(d):A.tab==='spells'?tabSpells(d):A.tab==='inv'?tabInv(d):tabStory(d);
+  var owner=dm?(A.names[A.chars.get(A.curId).owner]||'Player'):'';
+  app(topbar()+'<main class="wrap" id="sheet"><div id="stale" class="banner" '+(A.stale?'':'hidden')+'><span>This sheet was changed somewhere else.</span><button class="btn" data-act="reload">Load latest</button></div>'+
+    (dm?dmPanel(d):'')+
+    '<section class="card">'+(dm?'<p class="lbl">Player: '+esc(owner)+'</p>':'')+inp('name',{cls:'name bare',label:'Character name'})+
+    '<div class="g c4" style="margin-top:12px">'+fld('Race','race')+fld('Class','cls')+fld('Subclass','sub')+fld('Level','level',{t:'num'})+fld('Background','bg')+fld('Alignment','align')+fld('Experience','xp',{t:'num'})+'</div></section>'+
+    '<div class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-act="tab" data-t="'+t[0]+'" aria-selected="'+(A.tab===t[0])+'" style="color:'+(A.tab===t[0]?'var(--gold)':'var(--on-panel-soft)')+'">'+t[1]+'</button>'}).join('')+'</div>'+
+    body+'</main>');
+  refresh();
+}
+function refresh(){
+  var dd=derived(A.data);
+  document.querySelectorAll('[data-d]').forEach(function(e){
+    var k=e.getAttribute('data-d');if(k in dd)e.textContent=dd[k]});
+  var hb=$('[data-hpbar]');if(hb){var h=A.data.hp,pct=h.max>0?Math.max(0,Math.min(100,h.cur/h.max*100)):0;hb.style.width=pct+'%';hb.className=hpClass(h.cur,h.max)}
+}
+
+/* ================= events ================= */
+document.addEventListener('input',function(ev){
+  var e=ev.target,p=e.getAttribute&&e.getAttribute('data-p');
+  if(e.id==='dmnote')return;
+  if(!p||!A.data||A.view!=='sheet')return;
+  var t=e.getAttribute('data-t');if(t==='bool')return;
+  setP(A.data,p,t==='num'?(e.value===''?0:Number(e.value)):e.value);touch();refresh();
+});
+document.addEventListener('change',function(ev){
+  var e=ev.target;
+  if(e.id==='dmnote'){B.saveNote(A.curId,e.value).then(function(){A.note=e.value;toast('Private note saved')}).catch(function(x){toast(esc(x.message))});return}
+  var p=e.getAttribute&&e.getAttribute('data-p');if(!p||!A.data||A.view!=='sheet')return;
+  var t=e.getAttribute('data-t');
+  if(t==='bool'){setP(A.data,p,e.checked);touch();refresh();return}
+  if(e.hasAttribute('data-r')){setP(A.data,p,t==='num'?Number(e.value)||0:e.value);touch();renderSheet()}
+});
+document.addEventListener('submit',async function(ev){
+  if(ev.target.id!=='af')return;ev.preventDefault();
+  var up=A.authTab==='up',em=$('#a-email').value,pw=$('#a-pw').value;
+  try{A.user=up?await B.signUp(em,pw,$('#a-name').value.trim(),$('#a-dm')&&$('#a-dm').checked):await B.signIn(em,pw);await enter()}catch(e){renderAuth(e.message)}
+});
+function applyHP(d,n){
+  if(n<0){var dmg=-n;var t=Math.min(d.hp.temp,dmg);d.hp.temp-=t;dmg-=t;d.hp.cur=Math.max(0,d.hp.cur-dmg)}
+  else d.hp.cur=Math.min(d.hp.max,d.hp.cur+n);
+}
+document.addEventListener('click',async function(ev){
+  var t=ev.target.closest('[data-act]');if(!t)return;
+  var act=t.getAttribute('data-act');
+  if(act==='atab'){A.authTab=t.getAttribute('data-t');renderAuth();return}
+  if(act==='out'){await flush();if(A.unsub)A.unsub();A.unsub=null;await B.signOut();A.user=null;A.chars=new Map();A.curId=null;A.data=null;A.authTab='in';renderAuth();return}
+  if(act==='home'){goHome();return}
+  if(act==='new'){newChar();return}
+  if(act==='open'){openChar(t.getAttribute('data-id'));return}
+  if(act==='hpq'){
+    var id=t.getAttribute('data-id'),row=A.chars.get(id);if(!row)return;
+    var d=norm(row.data);applyHP(d,Number(t.getAttribute('data-d')));row.data=d;row.updated_at=new Date().toISOString();
+    A.flashId=id;renderHome();try{await B.save(id,d)}catch(e){toast(esc(e.message))}return}
+  if(!A.data||A.view!=='sheet')return;
+  var d=A.data;
+  if(act==='tab'){A.tab=t.getAttribute('data-t');renderSheet();return}
+  if(act==='reload'){var r=A.chars.get(A.curId);A.data=norm(r.data);A.stale=false;A.dirty=false;renderSheet();return}
+  if(act==='hps'){applyHP(d,Number(t.getAttribute('data-d')));touch();renderSheet();return}
+  if(act==='pip'){var p=t.getAttribute('data-p'),i=Number(t.getAttribute('data-i')),cur=Number(getP(d,p))||0;setP(d,p,cur===i+1?i:i+1);touch();renderSheet();return}
+  if(act==='cond'){var c=t.getAttribute('data-c'),ix=d.conditions.indexOf(c);if(ix>-1)d.conditions.splice(ix,1);else d.conditions.push(c);touch();renderSheet();return}
+  if(act==='skill'){var k=t.getAttribute('data-k');d.skills[k]=((d.skills[k]||0)+1)%3;touch();renderSheet();return}
+  if(act==='add'){var l=t.getAttribute('data-l');
+    d[l].push(l==='attacks'?{name:'',bonus:'',dmg:''}:l==='spells'?{name:'',lv:0,prep:false,note:''}:{name:'',qty:1,weight:0,note:'',eq:false});
+    touch();renderSheet();var rows=document.querySelectorAll('[data-p^="'+l+'.'+(d[l].length-1)+'.name"]');if(rows[0])rows[0].focus();return}
+  if(act==='rm'){d[t.getAttribute('data-l')].splice(Number(t.getAttribute('data-i')),1);touch();renderSheet();return}
+  if(act==='roll'){var key=t.getAttribute('data-k'),b=bonusFor(d,key),r20=1+Math.floor(Math.random()*20);
+    toast(esc(t.getAttribute('data-l'))+': <b class="'+(r20===20||r20===1?'nat':'')+'">'+(r20+b)+'</b><br><small>d20 ('+r20+') '+sgn(b)+(r20===20?' · natural 20':r20===1?' · natural 1':'')+'</small>');return}
+  if(act==='del'){A.confirmDel=true;renderSheet();return}
+  if(act==='delno'){A.confirmDel=false;renderSheet();return}
+  if(act==='del2'){var id2=A.curId;try{await B.remove(id2);A.chars.delete(id2);A.curId=null;A.data=null;A.dirty=false;goHome()}catch(e){toast(esc(e.message))}return}
+  if(act==='grant'){
+    var nm=$('#g-name').value.trim(),q=Number($('#g-qty').value)||1,gp=Number($('#g-gp').value)||0,msg=$('#g-msg').value.trim();
+    if(!nm&&!gp){toast('Add an item or some gold first.');return}
+    await flush();
+    var row2=A.chars.get(A.curId),nd=norm(row2.data);
+    if(nm)nd.items.push({name:nm,qty:q,weight:0,note:'From the DM',eq:false});
+    nd.coin.gp=(Number(nd.coin.gp)||0)+gp;
+    nd.log.push({t:new Date().toISOString(),msg:(msg?msg+': ':'')+[nm?q+' × '+nm:'',gp?gp+' gp':''].filter(Boolean).join(' and ')});
+    A.data=nd;A.dirty=true;await flush();renderSheet();toast('Given to '+esc(nd.name));return}
+});
+
+/* ================= boot ================= */
+(async function(){
+  if(!DEMO&&!B){app('<main class="wrap"><section class="card auth"><h2>Could not load</h2><p>The Supabase library did not load. Check your internet connection and reload the page.</p></section></main>');return}
+  try{A.user=await B.init()}catch(e){A.user=null}
+  if(A.user){try{await enter()}catch(e){renderAuth(e.message)}}else renderAuth();
+})();
+})();
+</script>
+</body>
+</html>
